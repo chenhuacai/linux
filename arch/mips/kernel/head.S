@@ -43,20 +43,20 @@
 	.set	pop
 	.endm
 
-	.macro	setup_c0_status_pri
-#ifdef CONFIG_64BIT
-	setup_c0_status ST0_KX 0
+#ifdef CONFIG_CPU_LOONGSON64
+#define ST0_SET ST0_KX | ST0_CU2
+#elif defined(CONFIG_64BIT)
+#define ST0_SET ST0_KX
 #else
-	setup_c0_status 0 0
+#define ST0_SET 0
 #endif
+
+	.macro	setup_c0_status_pri
+	setup_c0_status ST0_SET 0
 	.endm
 
 	.macro	setup_c0_status_sec
-#ifdef CONFIG_64BIT
-	setup_c0_status ST0_KX ST0_BEV
-#else
-	setup_c0_status 0 ST0_BEV
-#endif
+	setup_c0_status ST0_SET ST0_BEV
 	.endm
 
 #ifndef CONFIG_NO_EXCEPT_FILL

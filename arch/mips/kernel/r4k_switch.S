@@ -53,6 +53,9 @@
 	nor	a3, $0, a3
 	and	a2, a3
 	or	a2, t1
+#ifdef CONFIG_CPU_LOONGSON64
+	or	a2, ST0_CU2   /* make 16-bytes load/store instructions usable */
+#endif
 	mtc0	a2, CP0_STATUS
 	move	v0, a0
 	jr	ra

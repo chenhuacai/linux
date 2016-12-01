@@ -2156,9 +2156,15 @@ static void configure_status(void)
 	 * Disable coprocessors and select 32-bit or 64-bit addressing
 	 * and the 16/32 or 32/32 FPR register model.  Reset the BEV
 	 * flag that some firmware may have left set and the TS bit (for
-	 * IP27).  Set XX for ISA IV code to work.
+	 * IP27). Set XX for ISA IV code to work, and enable CU2 for
+	 * Loongson-3 to make 16-bytes load/store instructions usable.
 	 */
+#ifndef CONFIG_CPU_LOONGSON64
 	unsigned int status_set = ST0_CU0;
+#else
+	unsigned int status_set = ST0_CU0 | ST0_CU2;
+#endif
+
 #ifdef CONFIG_64BIT
 	status_set |= ST0_FR|ST0_KX|ST0_SX|ST0_UX;
 #endif
