@@ -295,7 +295,7 @@ static inline void cpu_probe_loongson(struct cpuinfo_loongarch *c, unsigned int 
 		break;
 	}
 
-	pr_info("%s Processor probed (%s Core)\n", __cpu_family[cpu], core_name);
+	pr_verbose("%s Processor probed (%s Core)\n", __cpu_family[cpu], core_name);
 
 	if (!cpu_has_iocsr) {
 		__cpu_full_name[cpu] = "Unknown";
@@ -352,10 +352,10 @@ static void cpu_report(void)
 {
 	struct cpuinfo_loongarch *c = &current_cpu_data;
 
-	pr_info("CPU%d revision is: %08x (%s)\n",
+	pr_verbose("CPU%d revision is: %08x (%s)\n",
 		smp_processor_id(), c->processor_id, cpu_family_string());
 	if (c->options & LOONGARCH_CPU_FPU)
-		pr_info("FPU%d revision is: %08x\n", smp_processor_id(), c->fpu_vers);
+		pr_verbose("FPU%d revision is: %08x\n", smp_processor_id(), c->fpu_vers);
 }
 
 void cpu_probe(void)

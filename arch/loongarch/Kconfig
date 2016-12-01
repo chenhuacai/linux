@@ -757,6 +757,16 @@ source "kernel/power/Kconfig"
 source "drivers/acpi/Kconfig"
 source "drivers/cpufreq/Kconfig"
 
+config LOONGSON_CPUAUTOPLUG
+	tristate "Loongson CPUAutoplug Driver"
+	depends on MACH_LOONGSON64 && HOTPLUG_CPU
+	help
+	  This option adds a CPUAutoplug driver for Loongson multi-core processors
+	  which CPU frequencies of all cores should be configured together (or the
+	  effect of CPUFreq is not so good).
+
+	  If in doubt, say N.
+
 endmenu
 
 source "arch/loongarch/kvm/Kconfig"
