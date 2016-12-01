@@ -384,7 +384,7 @@ void loongson_boot_secondary(int cpu, struct task_struct *idle)
 {
 	unsigned long entry;
 
-	pr_info("Booting CPU#%d...\n", cpu);
+	pr_verbose("Booting CPU#%d...\n", cpu);
 
 	entry = __pa_symbol((unsigned long)&smpboot_entry);
 	cpuboot_data.stack = (unsigned long)__KSTK_TOS(idle);
@@ -423,7 +423,7 @@ void loongson_smp_finish(void)
 {
 	local_irq_enable();
 	iocsr_write64(0, LOONGARCH_IOCSR_MBUF0);
-	pr_info("CPU#%d finished\n", smp_processor_id());
+	pr_verbose("CPU#%d finished\n", smp_processor_id());
 }
 
 #ifdef CONFIG_HOTPLUG_CPU

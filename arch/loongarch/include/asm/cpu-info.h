@@ -10,6 +10,23 @@
 
 #include <asm/loongarch.h>
 
+#if !defined(__ASSEMBLY__)
+
+#ifndef CONFIG_LOONGSON_CPUAUTOPLUG
+#define auto_verbose 1
+#else
+extern int autoplug_verbose;
+#define auto_verbose (autoplug_verbose || (system_state == SYSTEM_BOOTING))
+#endif
+
+#define pr_verbose(fmt, ...)				\
+do {							\
+	if (auto_verbose)				\
+		pr_info(pr_fmt(fmt), ##__VA_ARGS__);	\
+} while (0)
+
+#endif /* !__ASSEMBLY */
+
 /* cache_desc->flags */
 enum {
 	CACHE_PRESENT	= (1 << 0),
