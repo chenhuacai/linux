@@ -34,5 +34,6 @@ struct font_data {
 #define TER16x32_IDX	11
 #define FONT6x8_IDX	12
 #define TER10x18_IDX	13
+#define UTF8x16_IDX	14
 
 #endif
