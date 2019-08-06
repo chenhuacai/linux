@@ -19,6 +19,8 @@
 #include "fbcon.h"
 #include "fbcon_rotate.h"
 
+extern u16 utf8_pos(struct vc_data *vc, const unsigned short *utf8);
+
 /*
  * Rotation 270 degrees
  */
@@ -105,13 +107,27 @@ static inline void ccw_putcs_aligned(struct vc_data *vc, struct fb_info *info,
 	u32 idx = font_glyph_pitch(vc->vc_font.height);
 	u8 *src;
 
+	int utf8_c = 0;
 	while (cnt--) {
-		src = par->rotated.buf + (scr_readw(s--) & charmask) * cellsize;
-
+		utf8_c = utf8_pos(vc, s);
+		if(((scr_readw(s) & charmask) == 0xff || (scr_readw(s) & charmask) == 0xfe ) &&  utf8_c != 0){
+			char dst[16];
+			utf8_c -= 128;
+			if((scr_readw(s) & charmask) == 0xff){
+				src = (u8 *)vc->vc_font.data + (utf8_c * 32);
+			}else{
+				src = (u8 *)vc->vc_font.data + (utf8_c * 32 + 16);
+			}
+			font_glyph_rotate_270(src, vc->vc_font.width, vc->vc_font.height, dst);
+			src = dst;
+		}else{
+			src = par->rotated.buf + (scr_readw(s) & charmask) * cellsize;
+		}
 		if (attr) {
 			ccw_update_attr(buf, src, attr, vc);
 			src = buf;
 		}
+		s--;
 
 		if (likely(idx == 1))
 			__fb_pad_aligned_buffer(dst, d_pitch, src, idx,
@@ -225,7 +241,7 @@ static void ccw_cursor(struct vc_data *vc, struct fb_info *info, bool enable,
 	struct fbcon_par *par = info->fbcon_par;
 	unsigned short charmask = vc->vc_hi_font_mask ? 0x1ff : 0xff;
 	int w = font_glyph_pitch(vc->vc_font.height);
-	int c;
+	int c, c_extra;
 	int y = real_y(par->p, vc->state.y);
 	int attribute, use_sw = vc->vc_cursor_type & CUR_SW;
 	int err = 1, dx, dy;
@@ -238,8 +254,21 @@ static void ccw_cursor(struct vc_data *vc, struct fb_info *info, bool enable,
 	cursor.set = 0;
 
  	c = scr_readw((u16 *) vc->vc_pos);
+ 	c_extra = utf8_pos(vc, (u16 *) vc->vc_pos);
 	attribute = get_attribute(info, c);
-	src = par->rotated.buf + ((c & charmask) * (w * vc->vc_font.width));
+	if(((c&charmask) == 0xff || (c & charmask) == 0xfe) && c_extra != 0){
+		char dst[16];
+		c_extra -= 128;
+		if((c & charmask) == 0xff){
+			src = vc->vc_font.data + (c_extra * 32);
+		}else{
+			src = vc->vc_font.data + (c_extra * 32 + 16);
+		}
+		font_glyph_rotate_270(src, vc->vc_font.width, vc->vc_font.height, dst);
+		src = dst;
+	}else{
+		src = par->rotated.buf + ((c & charmask) * (w * vc->vc_font.width));
+	}
 
 	if (par->cursor_state.image.data != src ||
 	    par->cursor_reset) {
