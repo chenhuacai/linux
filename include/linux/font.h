@@ -159,5 +159,6 @@ extern const struct font_desc font_ter_16x32;
 extern const struct font_desc font_vga_6x11;
 extern const struct font_desc font_vga_8x16;
 extern const struct font_desc font_vga_8x8;
+extern const struct font_desc font_utf8_8x16;
 
 #endif /* _VIDEO_FONT_H */

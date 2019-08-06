@@ -19,5 +19,6 @@ font-$(CONFIG_FONT_SUN8x16)   += font_sun8x16.o
 font-$(CONFIG_FONT_SUN12x22)  += font_sun12x22.o
 font-$(CONFIG_FONT_TER10x18)  += font_ter10x18.o
 font-$(CONFIG_FONT_TER16x32)  += font_ter16x32.o
+font-$(CONFIG_FONT_UTF8x16)   += font_utf8x16.o
 
 obj-$(CONFIG_FONT_SUPPORT) += font.o
