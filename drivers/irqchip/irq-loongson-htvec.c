@@ -19,13 +19,14 @@
 
 /* Registers */
 #define HTVEC_EN_OFF		0x20
-#define HTVEC_MAX_PARENT_IRQ	4
+#define HTVEC_MAX_PARENT_IRQ	8
 
 #define VEC_COUNT_PER_REG	32
-#define VEC_REG_COUNT		4
-#define VEC_COUNT		(VEC_COUNT_PER_REG * VEC_REG_COUNT)
+#define VEC_COUNT		(VEC_COUNT_PER_REG * num_parents)
 #define VEC_REG_IDX(irq_id)	((irq_id) / VEC_COUNT_PER_REG)
 #define VEC_REG_BIT(irq_id)	((irq_id) % VEC_COUNT_PER_REG)
+
+static int num_parents = 0;
 
 struct htvec {
 	void __iomem		*base;
@@ -43,7 +44,7 @@ static void htvec_irq_dispatch(struct irq_desc *desc)
 
 	chained_irq_enter(chip, desc);
 
-	for (i = 0; i < VEC_REG_COUNT; i++) {
+	for (i = 0; i < num_parents; i++) {
 		pending = readl(priv->base + 4 * i);
 		while (pending) {
 			int bit = __ffs(pending);
@@ -147,7 +148,7 @@ static void htvec_reset(struct htvec *priv)
 	u32 idx;
 
 	/* Clear IRQ cause registers, mask all interrupts */
-	for (idx = 0; idx < VEC_REG_COUNT; idx++) {
+	for (idx = 0; idx < num_parents; idx++) {
 		writel_relaxed(0x0, priv->base + HTVEC_EN_OFF + 4 * idx);
 		writel_relaxed(0xFFFFFFFF, priv->base);
 	}
@@ -157,7 +158,7 @@ static int htvec_of_init(struct device_node *node,
 				struct device_node *parent)
 {
 	struct htvec *priv;
-	int err, parent_irq[4], num_parents = 0, i;
+	int err, parent_irq[8], i;
 
 	priv = kzalloc(sizeof(*priv), GFP_KERNEL);
 	if (!priv)
