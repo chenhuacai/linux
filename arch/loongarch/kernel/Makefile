@@ -17,7 +17,7 @@ obj-$(CONFIG_EFI) 		+= efi.o
 
 obj-$(CONFIG_CPU_HAS_FPU)	+= fpu.o kfpu.o
 
-obj-$(CONFIG_CPU_HAS_LBT)	+= lbt.o
+obj-$(CONFIG_CPU_HAS_LBT)	+= lbt.o scall-trans-mips64.o trans_mips_syscalls.o scall-trans-i386.o trans_i386_syscalls.o
 
 obj-$(CONFIG_ARCH_STRICT_ALIGN)	+= unaligned.o
 
