@@ -991,6 +991,10 @@ static int setup_rt_frame(void *sig_return, struct ksignal *ksig,
 	 * c0_era point to the signal handler, $r3 (sp) points to
 	 * the struct rt_sigframe.
 	 */
+#ifdef CONFIG_CPU_HAS_LBT
+	if (current_thread_info()->tp_value)
+		regs->regs[2] = current_thread_info()->tp_value;
+#endif
 	regs->regs[4] = ksig->sig;
 	regs->regs[5] = (unsigned long) &frame->rs_info;
 	regs->regs[6] = (unsigned long) &frame->rs_uctx;
