@@ -1,0 +1,125 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * Copyright (C) 2020 Loongson Technology Corporation Limited
+ * Authors: Hanlu Li <lihanlu@loongson.cn>
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation;  either version 2 of the  License, or (at your
+ * option) any later version.
+ */
+#include <linux/syscalls.h>
+#include <asm/trans_syscalls.h>
+
+static const unsigned int mips_errno[] = {
+	[EDEADLK]		= M_EDEADLK,
+	[ENAMETOOLONG]		= M_ENAMETOOLONG,
+	[ENOLCK]		= M_ENOLCK,
+	[ENOSYS]		= M_ENOSYS,
+	[ENOTEMPTY]		= M_ENOTEMPTY,
+	[ELOOP]			= M_ELOOP,
+	[ENOMSG]		= M_ENOMSG,
+	[EIDRM]			= M_EIDRM,
+	[ECHRNG]		= M_ECHRNG,
+	[EL2NSYNC]		= M_EL2NSYNC,
+	[EL3HLT]		= M_EL3HLT,
+	[EL3RST]		= M_EL3RST,
+	[ELNRNG]		= M_ELNRNG,
+	[EUNATCH]		= M_EUNATCH,
+	[ENOCSI]		= M_ENOCSI,
+	[EL2HLT]		= M_EL2HLT,
+	[EBADE]			= M_EBADE,
+	[EBADR]			= M_EBADR,
+	[EXFULL]		= M_EXFULL,
+	[ENOANO]		= M_ENOANO,
+	[EBADRQC]		= M_EBADRQC,
+	[EBADSLT]		= M_EBADSLT,
+	[EBFONT]		= M_EBFONT,
+	[ENOSTR]		= M_ENOSTR,
+	[ENODATA]		= M_ENODATA,
+	[ETIME]			= M_ETIME,
+	[ENOSR]			= M_ENOSR,
+	[ENONET]		= M_ENONET,
+	[ENOPKG]		= M_ENOPKG,
+	[EREMOTE]		= M_EREMOTE,
+	[ENOLINK]		= M_ENOLINK,
+	[EADV]			= M_EADV,
+	[ESRMNT]		= M_ESRMNT,
+	[ECOMM]			= M_ECOMM,
+	[EPROTO]		= M_EPROTO,
+	[EMULTIHOP]		= M_EMULTIHOP,
+	[EDOTDOT]		= M_EDOTDOT,
+	[EBADMSG]		= M_EBADMSG,
+	[EOVERFLOW]		= M_EOVERFLOW,
+	[ENOTUNIQ]		= M_ENOTUNIQ,
+	[EBADFD]		= M_EBADFD,
+	[EREMCHG]		= M_EREMCHG,
+	[ELIBACC]		= M_ELIBACC,
+	[ELIBBAD]		= M_ELIBBAD,
+	[ELIBSCN]		= M_ELIBSCN,
+	[ELIBMAX]		= M_ELIBMAX,
+	[ELIBEXEC]		= M_ELIBEXEC,
+	[EILSEQ]		= M_EILSEQ,
+	[ERESTART]		= M_ERESTART,
+	[ESTRPIPE]		= M_ESTRPIPE,
+	[EUSERS]		= M_EUSERS,
+	[ENOTSOCK]		= M_ENOTSOCK,
+	[EDESTADDRREQ]		= M_EDESTADDRREQ,
+	[EMSGSIZE]		= M_EMSGSIZE,
+	[EPROTOTYPE]		= M_EPROTOTYPE,
+	[ENOPROTOOPT]		= M_ENOPROTOOPT,
+	[EPROTONOSUPPORT]	= M_EPROTONOSUPPORT,
+	[ESOCKTNOSUPPORT]	= M_ESOCKTNOSUPPORT,
+	[EOPNOTSUPP]		= M_EOPNOTSUPP,
+	[EPFNOSUPPORT]		= M_EPFNOSUPPORT,
+	[EAFNOSUPPORT]		= M_EAFNOSUPPORT,
+	[EADDRINUSE]		= M_EADDRINUSE,
+	[EADDRNOTAVAIL]		= M_EADDRNOTAVAIL,
+	[ENETDOWN]		= M_ENETDOWN,
+	[ENETUNREACH]		= M_ENETUNREACH,
+	[ENETRESET]		= M_ENETRESET,
+	[ECONNABORTED]		= M_ECONNABORTED,
+	[ECONNRESET]		= M_ECONNRESET,
+	[ENOBUFS]		= M_ENOBUFS,
+	[EISCONN]		= M_EISCONN,
+	[ENOTCONN]		= M_ENOTCONN,
+	[ESHUTDOWN]		= M_ESHUTDOWN,
+	[ETOOMANYREFS]		= M_ETOOMANYREFS,
+	[ETIMEDOUT]		= M_ETIMEDOUT,
+	[ECONNREFUSED]		= M_ECONNREFUSED,
+	[EHOSTDOWN]		= M_EHOSTDOWN,
+	[EHOSTUNREACH]		= M_EHOSTUNREACH,
+	[EALREADY]		= M_EALREADY,
+	[EINPROGRESS]		= M_EINPROGRESS,
+	[ESTALE]		= M_ESTALE,
+	[EUCLEAN]		= M_EUCLEAN,
+	[ENOTNAM]		= M_ENOTNAM,
+	[ENAVAIL]		= M_ENAVAIL,
+	[EISNAM]		= M_EISNAM,
+	[EREMOTEIO]		= M_EREMOTEIO,
+	[EDQUOT]		= M_EDQUOT,
+	[ENOMEDIUM]		= M_ENOMEDIUM,
+	[EMEDIUMTYPE]		= M_EMEDIUMTYPE,
+	[ECANCELED]		= M_ECANCELED,
+	[ENOKEY]		= M_ENOKEY,
+	[EKEYEXPIRED]		= M_EKEYEXPIRED,
+	[EKEYREVOKED]		= M_EKEYREVOKED,
+	[EKEYREJECTED]		= M_EKEYREJECTED,
+	[EOWNERDEAD]		= M_EOWNERDEAD,
+	[ENOTRECOVERABLE]	= M_ENOTRECOVERABLE,
+	[ERFKILL]		= M_ERFKILL,
+	[EHWPOISON]		= M_EHWPOISON,
+};
+
+asmlinkage int trans_mips_errno(int errno)
+{
+	if (errno >= EDEADLK && errno <= EHWPOISON)
+		return mips_errno[errno];
+	return errno;
+}
+
+SYSCALL_DEFINE0(set_user_tp)
+{
+	current_thread_info()->tp_value = task_pt_regs(current)->regs[2];
+	return 0;
+}
