@@ -623,7 +623,7 @@ struct iommu_ops {
 	void *(*hw_info)(struct device *dev, u32 *length, u32 *type);
 
 	/* Domain allocation and freeing by the iommu driver */
-#if IS_ENABLED(CONFIG_FSL_PAMU)
+#if IS_ENABLED(CONFIG_FSL_PAMU) || IS_ENABLED(CONFIG_LOONGSON_IOMMU)
 	struct iommu_domain *(*domain_alloc)(unsigned iommu_domain_type);
 #endif
 	struct iommu_domain *(*domain_alloc_identity)(struct device *dev);
