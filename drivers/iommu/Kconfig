@@ -197,6 +197,7 @@ source "drivers/iommu/arm/Kconfig"
 source "drivers/iommu/intel/Kconfig"
 source "drivers/iommu/hyperv/Kconfig"
 source "drivers/iommu/iommufd/Kconfig"
+source "drivers/iommu/loongson/Kconfig"
 source "drivers/iommu/riscv/Kconfig"
 
 config IRQ_REMAP
