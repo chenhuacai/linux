@@ -405,11 +405,13 @@ static void xhci_pci_quirks(struct device *dev, struct xhci_hcd *xhci)
 	if (pdev->vendor == PCI_VENDOR_ID_RENESAS &&
 	    pdev->device == 0x0014) {
 		xhci->quirks |= XHCI_ZERO_64B_REGS;
+		xhci->quirks |= XHCI_LWP_QUIRK;
 	}
 	if (pdev->vendor == PCI_VENDOR_ID_RENESAS &&
 	    pdev->device == 0x0015) {
 		xhci->quirks |= XHCI_RESET_ON_RESUME;
 		xhci->quirks |= XHCI_ZERO_64B_REGS;
+		xhci->quirks |= XHCI_LWP_QUIRK;
 	}
 	if (pdev->vendor == PCI_VENDOR_ID_VIA)
 		xhci->quirks |= XHCI_RESET_ON_RESUME;
@@ -671,6 +673,10 @@ static void xhci_pci_remove(struct pci_dev *dev)
 	if (xhci->quirks & XHCI_SPURIOUS_WAKEUP)
 		pci_set_power_state(dev, PCI_D3hot);
 
+	/* Workaround for decreasing power consumption after S5 */
+	if (xhci->quirks & XHCI_LWP_QUIRK)
+		pci_set_power_state(dev, PCI_D3hot);
+
 	usb_hcd_pci_remove(dev);
 }
 
@@ -875,6 +881,10 @@ static void xhci_pci_shutdown(struct usb_hcd *hcd)
 
 	/* Yet another workaround for spurious wakeups at shutdown with HSW */
 	if (xhci->quirks & XHCI_SPURIOUS_WAKEUP)
+		pci_set_power_state(pdev, PCI_D3hot);
+
+	/* Workaround for decreasing power consumption after S5 */
+	if (xhci->quirks & XHCI_LWP_QUIRK)
 		pci_set_power_state(pdev, PCI_D3hot);
 }
 
