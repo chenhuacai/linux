@@ -17,15 +17,15 @@
 #include <linux/platform_device.h>
 #include <linux/bitops.h>
 #include <asm/types.h>
-#include <loongson.h>
+#include <asm/loongson.h>
 
 #define STLS2F_N_GPIO		4
 #define STLS3A_N_GPIO		16
 
-#ifdef CONFIG_CPU_LOONGSON64
-#define LOONGSON_N_GPIO	STLS3A_N_GPIO
-#else
+#ifdef CONFIG_CPU_LOONGSON2EF
 #define LOONGSON_N_GPIO	STLS2F_N_GPIO
+#else
+#define LOONGSON_N_GPIO	STLS3A_N_GPIO
 #endif
 
 /*
