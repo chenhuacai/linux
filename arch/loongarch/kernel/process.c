@@ -38,6 +38,7 @@
 #include <asm/cpu.h>
 #include <asm/elf.h>
 #include <asm/fpu.h>
+#include <asm/lbt.h>
 #include <asm/io.h>
 #include <asm/irq.h>
 #include <asm/irq_regs.h>
@@ -89,9 +90,11 @@ void start_thread(struct pt_regs *regs, unsigned long pc, unsigned long sp)
 	euen = regs->csr_euen & ~(CSR_EUEN_FPEN);
 	regs->csr_euen = euen;
 	lose_fpu(0);
+	lose_lbt(0);
 
 	clear_thread_flag(TIF_LSX_CTX_LIVE);
 	clear_thread_flag(TIF_LASX_CTX_LIVE);
+	clear_thread_flag(TIF_LBT_CTX_LIVE);
 	clear_used_math();
 	regs->csr_era = pc;
 	regs->regs[3] = sp;
@@ -196,8 +199,10 @@ out:
 	ptrace_hw_copy_thread(p);
 	clear_tsk_thread_flag(p, TIF_USEDFPU);
 	clear_tsk_thread_flag(p, TIF_USEDSIMD);
+	clear_tsk_thread_flag(p, TIF_USEDLBT);
 	clear_tsk_thread_flag(p, TIF_LSX_CTX_LIVE);
 	clear_tsk_thread_flag(p, TIF_LASX_CTX_LIVE);
+	clear_tsk_thread_flag(p, TIF_LBT_CTX_LIVE);
 
 	return 0;
 }

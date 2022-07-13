@@ -36,6 +36,7 @@
 #include <asm/break.h>
 #include <asm/cpu.h>
 #include <asm/fpu.h>
+#include <asm/lbt.h>
 #include <asm/inst.h>
 #include <asm/loongarch.h>
 #include <asm/mmu_context.h>
@@ -904,6 +905,24 @@ static void init_restore_lasx(void)
 	BUG_ON(!is_lasx_enabled());
 }
 
+#ifdef CONFIG_CPU_HAS_LBT
+static void init_restore_lbt(void)
+{
+	if (!thread_lbt_context_live()) {
+		/* First time lbt context user */
+		init_lbt();
+	} else {
+		/* Enable and restore */
+		if (!is_lbt_owner())
+			own_lbt_inatomic(1);
+	}
+
+	BUG_ON(!is_lbt_enabled());
+}
+#else
+static void init_restore_lbt(void) {}
+#endif
+
 asmlinkage void noinstr do_fpu(struct pt_regs *regs)
 {
 	irqentry_state_t state = irqentry_enter(regs);
@@ -968,10 +987,29 @@ asmlinkage void noinstr do_lbt(struct pt_regs *regs)
 {
 	irqentry_state_t state = irqentry_enter(regs);
 
-	local_irq_enable();
-	force_sig(SIGILL);
-	local_irq_disable();
+	/*
+	 * BTD (Binary Translation Disable exception) can be triggered
+	 * during FP save/restore if TM (Top Mode) is open, which may
+	 * cause irq_enable during 'switch_to'. To avoid this situation
+	 * (including the user using 'MOVGR2GCSR' to open the TM, which
+	 * will not trigger the BTE), we need to check PRMD first.
+	 */
+	if (likely(regs->csr_prmd & CSR_PRMD_PIE))
+		local_irq_enable();
 
+	if (!cpu_has_lbt) {
+		force_sig(SIGILL);
+		goto out;
+	}
+
+	BUG_ON(is_lbt_enabled());
+
+	preempt_disable();
+	init_restore_lbt();
+	preempt_enable();
+
+out:
+	local_irq_disable();
 	irqentry_exit(regs, state);
 }
 

@@ -80,8 +80,9 @@ BUILD_FPR_ACCESS(32)
 BUILD_FPR_ACCESS(64)
 
 struct loongarch_fpu {
-	unsigned int	fcsr;
 	uint64_t	fcc;	/* 8x8 */
+	uint32_t	fcsr;
+	uint32_t	ftop;
 	union fpureg	fpr[NUM_FPU_REGS];
 };
 
@@ -174,8 +175,9 @@ struct thread_struct {
 	 * FPU & vector registers				\
 	 */							\
 	.fpu			= {				\
-		.fcsr		= 0,				\
 		.fcc		= 0,				\
+		.fcsr		= 0,				\
+		.ftop		= 0,				\
 		.fpr		= {{{0,},},},			\
 	},							\
 	.hbp_break		= {0},				\

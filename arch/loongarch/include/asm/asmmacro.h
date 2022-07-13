@@ -148,12 +148,53 @@
 
 	.macro fpu_save_csr thread tmp
 	movfcsr2gr	\tmp, fcsr0
-	stptr.w	\tmp, \thread, THREAD_FCSR
+	stptr.w		\tmp, \thread, THREAD_FCSR
+#ifdef CONFIG_CPU_HAS_LBT
+	andi		\tmp, \tmp, FPU_CSR_TM
+	beqz		\tmp, 1f
+	/* save ftop */
+	x86mftop	\tmp
+	st.b		\tmp, \thread, THREAD_FTOP
+	/* Since LSX/LASX is not controlled by TM, we need
+	 * to turn off TM before each context switch to ensure
+	 * that the order of FPR in memory is independent of TM.
+	 */
+	x86clrtm
+	1 :
+#endif
 	.endm
 
-	.macro fpu_restore_csr thread tmp
-	ldptr.w	\tmp, \thread, THREAD_FCSR
-	movgr2fcsr	fcsr0, \tmp
+	.macro fpu_restore_csr thread tmp0 tmp1
+	ldptr.w		\tmp0, \thread, THREAD_FCSR
+	movgr2fcsr	fcsr0, \tmp0
+#ifdef CONFIG_CPU_HAS_LBT
+	/* TM bit is always 0 if LBT not supported */
+	andi		\tmp0, \tmp0, FPU_CSR_TM
+	beqz		\tmp0, 1f
+	/* restore ftop */
+	ld.b		\tmp0, \thread, THREAD_FTOP
+	andi		\tmp0, \tmp0, 0x7
+	la.pcrel	\tmp1, 2f
+	alsl.d		\tmp1, \tmp0, \tmp1, 3
+	jr			\tmp1
+	2 :
+	x86mttop	0
+	b	1f
+	x86mttop	1
+	b	1f
+	x86mttop	2
+	b	1f
+	x86mttop	3
+	b	1f
+	x86mttop	4
+	b	1f
+	x86mttop	5
+	b	1f
+	x86mttop	6
+	b	1f
+	x86mttop	7
+	1 :
+#endif
 	.endm
 
 	.macro fpu_save_cc thread tmp0 tmp1
@@ -353,7 +394,7 @@
 	.macro	lsx_restore_all	thread tmp0 tmp1
 	lsx_restore_data	\thread, \tmp0
 	fpu_restore_cc		\thread, \tmp0, \tmp1
-	fpu_restore_csr		\thread, \tmp0
+	fpu_restore_csr		\thread, \tmp0, \tmp1
 	.endm
 
 	.macro	lsx_save_upper vd base tmp off
@@ -563,7 +604,7 @@
 	.macro	lasx_restore_all thread tmp0 tmp1
 	lasx_restore_data	\thread, \tmp0
 	fpu_restore_cc		\thread, \tmp0, \tmp1
-	fpu_restore_csr		\thread, \tmp0
+	fpu_restore_csr		\thread, \tmp0, \tmp1
 	.endm
 
 	.macro	lasx_save_upper xd base tmp off
@@ -661,6 +702,38 @@
 	lasx_init_upper	$xr29 \tmp
 	lasx_init_upper	$xr30 \tmp
 	lasx_init_upper	$xr31 \tmp
+	.endm
+
+	.macro	lbt_save_scr thread tmp
+	movscr2gr	\tmp, $scr0
+	stptr.d	\tmp, \thread, THREAD_SCR0
+	movscr2gr	\tmp, $scr1
+	stptr.d	\tmp, \thread, THREAD_SCR1
+	movscr2gr	\tmp, $scr2
+	stptr.d	\tmp, \thread, THREAD_SCR2
+	movscr2gr	\tmp, $scr3
+	stptr.d	\tmp, \thread, THREAD_SCR3
+	.endm
+
+	.macro	lbt_restore_scr thread tmp
+	ldptr.d	\tmp, \thread, THREAD_SCR0
+	movgr2scr	$scr0, \tmp
+	ldptr.d	\tmp, \thread, THREAD_SCR1
+	movgr2scr	$scr1, \tmp
+	ldptr.d	\tmp, \thread, THREAD_SCR2
+	movgr2scr	$scr2, \tmp
+	ldptr.d	\tmp, \thread, THREAD_SCR3
+	movgr2scr	$scr3, \tmp
+	.endm
+
+	.macro	lbt_save_eflag thread tmp
+	x86mfflag	\tmp, 0x3f
+	stptr.d	\tmp, \thread, THREAD_EFLAGS
+	.endm
+
+	.macro	lbt_restore_eflag thread tmp
+	ldptr.d	\tmp, \thread, THREAD_EFLAGS
+	x86mtflag	\tmp, 0x3f
 	.endm
 
 .macro not dst src
