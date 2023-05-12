@@ -1,6 +1,10 @@
 # SPDX-License-Identifier: GPL-2.0
 # Objects to go into the VDSO.
 
+ifdef CONFIG_KASAN
+KASAN_SANITIZE := n
+endif
+
 # Include the generic Makefile to check the built vdso.
 include $(srctree)/lib/vdso/Makefile
 
