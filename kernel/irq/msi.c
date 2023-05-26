@@ -1034,6 +1034,7 @@ bool msi_create_device_irq_domain(struct device *dev, unsigned int domid,
 	struct irq_domain *domain, *parent = dev->msi.domain;
 	const struct msi_parent_ops *pops;
 	struct fwnode_handle *fwnode;
+	int ret;
 
 	if (!irq_domain_is_msi_parent(parent))
 		return false;
@@ -1093,7 +1094,8 @@ bool msi_create_device_irq_domain(struct device *dev, unsigned int domid,
 
 	dev->msi.data->__domains[domid].domain = domain;
 
-	if (msi_domain_prepare_irqs(domain, dev, hwsize, &bundle->alloc_info)) {
+	ret = msi_domain_prepare_irqs(domain, dev, hwsize, &bundle->alloc_info);
+	if (ret < 0) {
 		dev->msi.data->__domains[domid].domain = NULL;
 		irq_domain_remove(domain);
 		return false;
@@ -1156,6 +1158,12 @@ bool msi_match_device_irq_domain(struct device *dev, unsigned int domid,
 	return false;
 }
 
+/*
+ * Return Val:
+ * = 0: Success;
+ * > 0: The modified nvec;
+ * < 0: Error code.
+ */
 static int msi_domain_prepare_irqs(struct irq_domain *domain, struct device *dev,
 				   int nvec, msi_alloc_info_t *arg)
 {
@@ -1302,8 +1310,10 @@ static int __msi_domain_alloc_irqs(struct device *dev, struct irq_domain *domain
 	int i, ret, virq;
 
 	ret = populate_alloc_info(domain, dev, ctrl->nirqs, &arg);
-	if (ret)
+	if (ret < 0)
 		return ret;
+	if (ret > 0)
+		ctrl->nirqs = ret;
 
 	/*
 	 * This flag is set by the PCI layer as we need to activate
