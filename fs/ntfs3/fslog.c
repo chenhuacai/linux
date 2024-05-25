@@ -4662,7 +4662,7 @@ end_log_records_enumerate:
 	 * table are not empty.
 	 */
 	if ((!dptbl || !dptbl->total) && (!trtbl || !trtbl->total))
-		goto end_reply;
+		goto end_replay;
 
 	sbi->flags |= NTFS_FLAGS_NEED_REPLAY;
 	if (is_ro)
@@ -5091,7 +5091,7 @@ undo_action_done:
 
 	sbi->flags &= ~NTFS_FLAGS_NEED_REPLAY;
 
-end_reply:
+end_replay:
 
 	err = 0;
 	if (is_ro)
