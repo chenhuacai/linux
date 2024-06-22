@@ -5915,7 +5915,7 @@ int pcie_set_readrq(struct pci_dev *dev, int rq)
 		return -EINVAL;
 	v = FIELD_PREP(PCI_EXP_DEVCTL_READRQ, firstbit - 8);
 
-	if (bridge->no_inc_mrrs) {
+	if (bridge->no_inc_mrrs && (pm_suspend_target_state == PM_SUSPEND_ON)) {
 		int max_mrrs = pcie_get_readrq(dev);
 
 		if (rq > max_mrrs) {
