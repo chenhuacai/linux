@@ -256,15 +256,18 @@ struct radeon_bo *radeon_bo_ref(struct radeon_bo *bo)
 	if (bo == NULL)
 		return NULL;
 
-	drm_gem_object_get(&bo->tbo.base);
+	ttm_bo_get(&bo->tbo);
 	return bo;
 }
 
 void radeon_bo_unref(struct radeon_bo **bo)
 {
+	struct ttm_buffer_object *tbo;
+
 	if ((*bo) == NULL)
 		return;
-	drm_gem_object_put(&(*bo)->tbo.base);
+	tbo = &((*bo)->tbo);
+	ttm_bo_put(tbo);
 	*bo = NULL;
 }
 
