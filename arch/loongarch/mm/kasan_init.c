@@ -146,12 +146,17 @@ static void __init kasan_pte_populate(pmd_t *pmdp, unsigned long addr,
 				      unsigned long end, int node, bool early)
 {
 	unsigned long next;
+	phys_addr_t page_phys;
 	pte_t *ptep = kasan_pte_offset(pmdp, addr, node, early);
 
 	do {
-		phys_addr_t page_phys = early ?
-					__pa_symbol(kasan_early_shadow_page)
-					      : kasan_alloc_zeroed_page(node);
+		if (early)
+			page_phys = __pa_symbol(kasan_early_shadow_page);
+		else {
+			page_phys = kasan_alloc_zeroed_page(node);
+			kernel_pte_init(__va(page_phys));
+		}
+
 		next = addr + PAGE_SIZE;
 		set_pte(ptep, pfn_pte(__phys_to_pfn(page_phys), PAGE_KERNEL));
 	} while (ptep++, addr = next, addr != end && __pte_none(early, ptep_get(ptep)));
@@ -287,7 +292,7 @@ void __init kasan_init(void)
 		set_pte(&kasan_early_shadow_pte[i],
 			pfn_pte(__phys_to_pfn(__pa_symbol(kasan_early_shadow_page)), PAGE_KERNEL_RO));
 
-	memset(kasan_early_shadow_page, 0, PAGE_SIZE);
+	kernel_pte_init(kasan_early_shadow_page);
 	csr_write64(__pa_symbol(swapper_pg_dir), LOONGARCH_CSR_PGDH);
 	local_flush_tlb_all();
 
