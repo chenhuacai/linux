@@ -48,6 +48,10 @@ void *kasan_mem_to_shadow(const void *addr)
 			return (void *)(kasan_early_shadow_page);
 
 		maddr &= XRANGE_SHADOW_MASK;
+
+		if (maddr >= XRANGE_SIZE)
+			return (void *)(kasan_early_shadow_page);
+
 		switch (xrange) {
 		case XKPRANGE_CC_SEG:
 			offset = XKPRANGE_CC_SHADOW_OFFSET;
