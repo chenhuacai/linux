@@ -1986,9 +1986,10 @@ static int add_jump_table(struct objtool_file *file, struct instruction *insn,
 		if (!dest_insn)
 			break;
 
-		/* Make sure the destination is in the same function: */
-		if (!insn_func(dest_insn) || insn_func(dest_insn)->pfunc != pfunc)
-			break;
+		if (!insn_func(dest_insn) || insn_func(dest_insn)->pfunc != pfunc) {
+			prev_offset = reloc_offset(reloc);
+			continue;
+		}
 
 		alt = malloc(sizeof(*alt));
 		if (!alt) {
