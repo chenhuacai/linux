@@ -52,6 +52,8 @@ static inline u32 get_acpi_id_for_cpu(unsigned int cpu)
 extern int loongarch_acpi_suspend(void);
 extern int (*acpi_suspend_lowlevel)(void);
 
+acpi_status acpi_hw_enable_all_wakeup_gpes(void);
+
 static inline unsigned long acpi_get_wakeup_address(void)
 {
 #ifdef CONFIG_SUSPEND
