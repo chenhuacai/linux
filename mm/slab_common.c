@@ -971,9 +971,6 @@ void __init create_kmalloc_caches(void)
 		for (i = KMALLOC_SHIFT_LOW; i <= KMALLOC_SHIFT_HIGH; i++)
 			new_kmalloc_cache(i, type);
 	}
-#ifdef CONFIG_RANDOM_KMALLOC_CACHES
-	random_kmalloc_seed = get_random_u64();
-#endif
 
 	/* Kmalloc array is now usable */
 	slab_state = UP;
