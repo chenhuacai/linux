@@ -210,17 +210,23 @@ struct dc_state *dc_state_create(struct dc *dc, struct dc_state_create_params *p
 
 #ifdef CONFIG_DRM_AMD_DC_FP
 	if (dc->debug.using_dml2) {
+		DC_FP_START();
+
 		dml2_opt->use_clock_dc_limits = false;
 		if (!dml2_create(dc, dml2_opt, &state->bw_ctx.dml2)) {
+			DC_FP_END();
 			dc_state_release(state);
 			return NULL;
 		}
 
 		dml2_opt->use_clock_dc_limits = true;
 		if (!dml2_create(dc, dml2_opt, &state->bw_ctx.dml2_dc_power_source)) {
+			DC_FP_END();
 			dc_state_release(state);
 			return NULL;
 		}
+
+		DC_FP_END();
 	}
 #endif
 
@@ -240,6 +246,8 @@ void dc_state_copy(struct dc_state *dst_state, struct dc_state *src_state)
 	dc_state_copy_internal(dst_state, src_state);
 
 #ifdef CONFIG_DRM_AMD_DC_FP
+	DC_FP_START();
+
 	dst_state->bw_ctx.dml2 = dst_dml2;
 	if (src_state->bw_ctx.dml2)
 		dml2_copy(dst_state->bw_ctx.dml2, src_state->bw_ctx.dml2);
@@ -247,6 +255,8 @@ void dc_state_copy(struct dc_state *dst_state, struct dc_state *src_state)
 	dst_state->bw_ctx.dml2_dc_power_source = dst_dml2_dc_power_source;
 	if (src_state->bw_ctx.dml2_dc_power_source)
 		dml2_copy(dst_state->bw_ctx.dml2_dc_power_source, src_state->bw_ctx.dml2_dc_power_source);
+
+	DC_FP_END();
 #endif
 
 	/* context refcount should not be overridden */
@@ -268,17 +278,23 @@ struct dc_state *dc_state_create_copy(struct dc_state *src_state)
 	new_state->bw_ctx.dml2 = NULL;
 	new_state->bw_ctx.dml2_dc_power_source = NULL;
 
+	DC_FP_START();
+
 	if (src_state->bw_ctx.dml2 &&
 			!dml2_create_copy(&new_state->bw_ctx.dml2, src_state->bw_ctx.dml2)) {
+		DC_FP_END();
 		dc_state_release(new_state);
 		return NULL;
 	}
 
 	if (src_state->bw_ctx.dml2_dc_power_source &&
 			!dml2_create_copy(&new_state->bw_ctx.dml2_dc_power_source, src_state->bw_ctx.dml2_dc_power_source)) {
+		DC_FP_END();
 		dc_state_release(new_state);
 		return NULL;
 	}
+
+	DC_FP_END();
 #endif
 
 	kref_init(&new_state->refcount);
