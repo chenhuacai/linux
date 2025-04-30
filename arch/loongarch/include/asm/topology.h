@@ -36,6 +36,14 @@ void numa_set_distance(int from, int to, int distance);
 #define topology_sibling_cpumask(cpu)		(&cpu_sibling_map[cpu])
 #endif
 
+/*
+ * Return cpus that shares the last level cache.
+ */
+static inline const struct cpumask *cpu_coregroup_mask(int cpu)
+{
+	return &cpu_llc_shared_map[cpu];
+}
+
 #include <asm-generic/topology.h>
 
 static inline void arch_fix_phys_package_id(int num, u32 slot) { }
