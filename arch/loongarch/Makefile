@@ -147,10 +147,10 @@ ifdef CONFIG_ARCH_STRICT_ALIGN
 # Don't emit unaligned accesses.
 # Not all LoongArch cores support unaligned access, and as kernel we can't
 # rely on others to provide emulation for these accesses.
-KBUILD_CFLAGS += $(call cc-option,-mstrict-align)
+KBUILD_CFLAGS += $(call cc-option,-mstrict-align) -DACPI_MISALIGNMENT_NOT_SUPPORTED
 else
 # Optimise for performance on hardware supports unaligned access.
-KBUILD_CFLAGS += $(call cc-option,-mno-strict-align)
+KBUILD_CFLAGS += $(call cc-option,-mno-strict-align) -UACPI_MISALIGNMENT_NOT_SUPPORTED
 endif
 
 KBUILD_CFLAGS += -isystem $(shell $(CC) -print-file-name=include)
