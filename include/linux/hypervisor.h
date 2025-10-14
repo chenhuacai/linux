@@ -32,13 +32,15 @@ static inline bool jailhouse_paravirt(void)
 
 #endif /* !CONFIG_X86 */
 
-static inline bool hypervisor_isolated_pci_functions(void)
+static inline bool hypervisor_isolated_pci_functions(int bus)
 {
 	if (IS_ENABLED(CONFIG_S390))
 		return true;
 
-	if (IS_ENABLED(CONFIG_LOONGARCH))
-		return true;
+	if (IS_ENABLED(CONFIG_LOONGARCH)) {
+		if (bus == 0)
+			return true;
+	}
 
 	return jailhouse_paravirt();
 }
