@@ -68,18 +68,23 @@ static int __init fdt_cpu_clk_init(void)
 
 	np = of_get_cpu_node(0, NULL);
 	if (!np)
-		return -ENODEV;
+		goto fallback;
 
 	clk = of_clk_get(np, 0);
 	of_node_put(np);
 
 	if (IS_ERR(clk))
-		return -ENODEV;
+		goto fallback;
 
 	cpu_clock_freq = clk_get_rate(clk);
 	clk_put(clk);
 
 	return 0;
+
+fallback:
+	cpu_clock_freq = 200 * 1000 * 1000;
+
+	return -ENODEV;
 }
 late_initcall(fdt_cpu_clk_init);
 
