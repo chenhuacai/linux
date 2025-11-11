@@ -314,11 +314,22 @@ static inline void cpu_probe_loongson(struct cpuinfo_loongarch *c, unsigned int 
 	if (!cpu_has_iocsr)
 		return;
 
-	if (!__cpu_full_name[cpu])
-		__cpu_full_name[cpu] = cpu_full_name;
-
+#ifdef CONFIG_64BIT
 	*vendor = iocsr_read64(LOONGARCH_IOCSR_VENDOR);
 	*cpuname = iocsr_read64(LOONGARCH_IOCSR_CPUNAME);
+#else
+	*vendor = iocsr_read32(LOONGARCH_IOCSR_VENDOR) |
+		(u64)iocsr_read32(LOONGARCH_IOCSR_VENDOR + 4) << 32;
+	*cpuname = iocsr_read32(LOONGARCH_IOCSR_CPUNAME) |
+		(u64)iocsr_read32(LOONGARCH_IOCSR_CPUNAME + 4) << 32;
+#endif
+
+	if (!__cpu_full_name[cpu]) {
+		if (((char *)vendor)[0] == 0)
+			__cpu_full_name[cpu] = "Unknown";
+		else
+			__cpu_full_name[cpu] = cpu_full_name;
+	}
 
 	config = iocsr_read32(LOONGARCH_IOCSR_FEATURES);
 	if (config & IOCSRF_CSRIPI)
