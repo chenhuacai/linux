@@ -377,8 +377,11 @@ void arch_trigger_cpumask_backtrace(const cpumask_t *mask, int exclude_cpu)
 	nmi_trigger_cpumask_backtrace(mask, exclude_cpu, raise_backtrace);
 }
 
-#ifdef CONFIG_64BIT
+#ifdef CONFIG_32BIT
+void loongarch_dump_regs32(u32 *uregs, const struct pt_regs *regs)
+#else
 void loongarch_dump_regs64(u64 *uregs, const struct pt_regs *regs)
+#endif
 {
 	unsigned int i;
 
@@ -395,4 +398,3 @@ void loongarch_dump_regs64(u64 *uregs, const struct pt_regs *regs)
 	uregs[LOONGARCH_EF_CSR_ECFG] = regs->csr_ecfg;
 	uregs[LOONGARCH_EF_CSR_ESTAT] = regs->csr_estat;
 }
-#endif /* CONFIG_64BIT */
