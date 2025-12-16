@@ -298,8 +298,8 @@ static int __init acpi_cascade_irqdomain_init(void)
 int __init htvec_acpi_init(struct irq_domain *parent,
 				   struct acpi_madt_ht_pic *acpi_htvec)
 {
-	int i, ret;
-	int num_parents, parent_irq[8];
+	int i, ret, num_parents, parent_irq[8];
+	phys_addr_t addr = acpi_htvec->address;
 	struct fwnode_handle *domain_handle;
 
 	if (!acpi_htvec)
@@ -307,7 +307,7 @@ int __init htvec_acpi_init(struct irq_domain *parent,
 
 	num_parents = HTVEC_MAX_PARENT_IRQ;
 
-	domain_handle = irq_domain_alloc_fwnode(&acpi_htvec->address);
+	domain_handle = irq_domain_alloc_fwnode(&addr);
 	if (!domain_handle) {
 		pr_err("Unable to allocate domain handle\n");
 		return -ENOMEM;
