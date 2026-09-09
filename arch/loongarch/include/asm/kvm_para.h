@@ -14,6 +14,7 @@
 #define KVM_HCALL_CODE_SERVICE		0
 #define KVM_HCALL_CODE_SWDBG		1
 #define KVM_HCALL_CODE_USER_SERVICE	2
+#define KVM_HCALL_CODE_CRASH		3
 
 #define KVM_HCALL_SERVICE		HYPERCALL_ENCODE(HYPERVISOR_KVM, KVM_HCALL_CODE_SERVICE)
 #define  KVM_HCALL_FUNC_IPI		1
@@ -22,6 +23,8 @@
 #define KVM_HCALL_SWDBG			HYPERCALL_ENCODE(HYPERVISOR_KVM, KVM_HCALL_CODE_SWDBG)
 
 #define KVM_HCALL_USER_SERVICE		HYPERCALL_ENCODE(HYPERVISOR_KVM, KVM_HCALL_CODE_USER_SERVICE)
+
+#define KVM_HCALL_CRASH			HYPERCALL_ENCODE(HYPERVISOR_KVM, KVM_HCALL_CODE_CRASH)
 
 /*
  * LoongArch hypercall return code
@@ -156,6 +159,19 @@ static __always_inline long kvm_hypercall5(u64 fid,
 		: "=r" (ret)
 		: "r"(fun), "r" (a1), "r" (a2), "r" (a3), "r" (a4), "r" (a5)
 		: "memory"
+		);
+
+	return ret;
+}
+
+static __always_inline long kvm_hypercall_crash(void)
+{
+	register long ret asm("a0");
+
+	__asm__ __volatile__(
+		"hvcl "__stringify(KVM_HCALL_CRASH)
+		: "=r" (ret)
+		: : "memory"
 		);
 
 	return ret;
