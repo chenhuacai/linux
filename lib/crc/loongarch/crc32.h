@@ -24,7 +24,32 @@ do {							\
 #define CRC32(crc, value, size)		_CRC32(crc, value, size, crc)
 #define CRC32C(crc, value, size)	_CRC32(crc, value, size, crcc)
 
+static __ro_after_init DEFINE_STATIC_KEY_FALSE(have_ual);
 static __ro_after_init DEFINE_STATIC_KEY_FALSE(have_crc32);
+
+static inline u16 get_le16(const void *p)
+{
+	if (static_branch_likely(&have_ual))
+		return *((__le16 *)p);
+	else
+		return get_unaligned_le16(p);
+}
+
+static inline u32 get_le32(const void *p)
+{
+	if (static_branch_likely(&have_ual))
+		return *((__le32 *)p);
+	else
+		return get_unaligned_le32(p);
+}
+
+static inline u64 get_le64(const void *p)
+{
+	if (static_branch_likely(&have_ual))
+		return *((__le64 *)p);
+	else
+		return get_unaligned_le64(p);
+}
 
 static inline u32 crc32_le_arch(u32 crc, const u8 *p, size_t len)
 {
@@ -32,7 +57,7 @@ static inline u32 crc32_le_arch(u32 crc, const u8 *p, size_t len)
 		return crc32_le_base(crc, p, len);
 
 	while (len >= sizeof(u64)) {
-		u64 value = get_unaligned_le64(p);
+		u64 value = get_le64(p);
 
 		CRC32(crc, value, d);
 		p += sizeof(u64);
@@ -40,14 +65,14 @@ static inline u32 crc32_le_arch(u32 crc, const u8 *p, size_t len)
 	}
 
 	if (len & sizeof(u32)) {
-		u32 value = get_unaligned_le32(p);
+		u32 value = get_le32(p);
 
 		CRC32(crc, value, w);
 		p += sizeof(u32);
 	}
 
 	if (len & sizeof(u16)) {
-		u16 value = get_unaligned_le16(p);
+		u16 value = get_le16(p);
 
 		CRC32(crc, value, h);
 		p += sizeof(u16);
@@ -68,7 +93,7 @@ static inline u32 crc32c_arch(u32 crc, const u8 *p, size_t len)
 		return crc32c_base(crc, p, len);
 
 	while (len >= sizeof(u64)) {
-		u64 value = get_unaligned_le64(p);
+		u64 value = get_le64(p);
 
 		CRC32C(crc, value, d);
 		p += sizeof(u64);
@@ -76,14 +101,14 @@ static inline u32 crc32c_arch(u32 crc, const u8 *p, size_t len)
 	}
 
 	if (len & sizeof(u32)) {
-		u32 value = get_unaligned_le32(p);
+		u32 value = get_le32(p);
 
 		CRC32C(crc, value, w);
 		p += sizeof(u32);
 	}
 
 	if (len & sizeof(u16)) {
-		u16 value = get_unaligned_le16(p);
+		u16 value = get_le16(p);
 
 		CRC32C(crc, value, h);
 		p += sizeof(u16);
@@ -103,6 +128,8 @@ static inline u32 crc32c_arch(u32 crc, const u8 *p, size_t len)
 #define crc32_mod_init_arch crc32_mod_init_arch
 static void crc32_mod_init_arch(void)
 {
+	if (cpu_has_ual)
+		static_branch_enable(&have_ual);
 	if (cpu_has_crc32)
 		static_branch_enable(&have_crc32);
 }
