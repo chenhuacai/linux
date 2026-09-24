@@ -810,6 +810,7 @@ out_sigsegv:
 
 asmlinkage void noinstr do_watch(struct pt_regs *regs)
 {
+	bool need_sigtrap = !!current->ptrace;
 	irqentry_state_t state = irqentry_enter(regs);
 
 #ifndef CONFIG_HAVE_HW_BREAKPOINT
@@ -851,11 +852,12 @@ asmlinkage void noinstr do_watch(struct pt_regs *regs)
 			}
 		}
 	} else {
-		breakpoint_handler(regs);
-		watchpoint_handler(regs);
+		need_sigtrap |= breakpoint_handler(regs);
+		need_sigtrap |= watchpoint_handler(regs);
 	}
 
-	force_sig(SIGTRAP);
+	if (need_sigtrap)
+		force_sig(SIGTRAP);
 out:
 #endif
 	irqentry_exit(regs, state);
