@@ -24,6 +24,7 @@
 #include <linux/kexec_handover.h>
 #include <linux/kho/abi/block.h>
 #include <linux/kho_block.h>
+#include <linux/mm.h>
 #include <linux/slab.h>
 
 /*
