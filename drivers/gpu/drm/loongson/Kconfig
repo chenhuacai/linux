@@ -1,0 +1,62 @@
+# SPDX-License-Identifier: GPL-2.0
+
+config DRM_LOONGSON
+	tristate "DRM support for Loongson Graphics"
+	depends on DRM && PCI
+	depends on LOONGARCH || MIPS || COMPILE_TEST
+	select DRM_BUDDY
+	select DRM_CLIENT_SELECTION
+	select DRM_DISPLAY_HELPER
+	select DRM_DISPLAY_HDMI_HELPER
+	select DRM_KMS_HELPER
+	select DRM_SCHED
+	select DRM_TTM
+	select DRM_TTM_HELPER
+	select I2C
+	select I2C_ALGOBIT
+	select REGMAP_I2C
+	help
+	  This is a DRM driver for Loongson Graphics, it may including
+	  LS2K1000, LS2K2000, LS2K3000, LS7A1000, LS7A2000, LS9A1000 etc.
+	  Loongson LS2K series are SoC, Loongson LS7A series are bridge
+	  chipset, while Loongson LS9A series are discrete graphics card.
+
+	  If "M" is selected, the module will be called loonggpu.
+
+	  If in doubt, say "N".
+
+config VDD_LOONGSON
+	bool "VDD kernel driver for LOONGSON GPU devices"
+	depends on DRM_LOONGSON && (LOONGARCH)
+	default y
+	select MMU_NOTIFIER
+	select DRM_LOONGGPU_USERPTR
+	help
+	  Enable this if you want to use VDD features on LOONGSON GPU devices.
+
+config VDD_LOONGSON_SVM
+	bool "Enable HMM-based shared virtual memory manager"
+	depends on VDD_LOONGSON && DEVICE_PRIVATE
+	default y
+	select HMM_MIRROR
+	select MMU_NOTIFIER
+	help
+	  Enable this to use unified memory and managed memory in HIP. This
+	  memory manager supports two modes of operation. One based on
+	  preemptions and one based on page faults. To enable page fault
+	  based memory management on most LG200 GPUs, set the module
+	  parameter loonggpu.noretry=0.
+
+config VDD_LOONGSON_P2P
+	bool "VDD kernel driver support for peer-to-peer for LOONGSON GPU devices"
+	depends on VDD_LOONGSON && PCI_P2PDMA && DMABUF_MOVE_NOTIFY
+	help
+	  Enable peer-to-peer (P2P) communication between LOONGSON GPUs over
+	  the PCIe bus. This can improve performance of multi-GPU compute
+	  applications and libraries by enabling GPUs to access data directly
+	  in peer GPUs' memory without intermediate copies in system memory.
+
+	  This P2P feature is only enabled on compatible chipsets, and between
+	  GPUs with large memory BARs that expose the entire VRAM in PCIe bus
+	  address space within the physical address limits of the GPUs.
+

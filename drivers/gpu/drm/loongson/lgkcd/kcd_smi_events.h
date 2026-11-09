@@ -1,0 +1,52 @@
+/* SPDX-License-Identifier: GPL-2.0 OR MIT */
+/*
+ * Copyright 2020-2022 Advanced Micro Devices, Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+ * THE COPYRIGHT HOLDER(S) OR AUTHOR(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR
+ * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+#ifndef KCD_SMI_EVENTS_H_INCLUDED
+#define KCD_SMI_EVENTS_H_INCLUDED
+
+#include "kcd_priv.h"
+
+int kcd_smi_event_open(struct kcd_node *dev, uint32_t *fd);
+void kcd_smi_event_update_vmfault(struct kcd_node *dev, uint16_t pasid);
+void kcd_smi_event_update_gpu_reset(struct kcd_node *dev, bool post_reset);
+void kcd_smi_event_page_fault_start(struct kcd_node *node, pid_t pid,
+				    unsigned long address, bool write_fault,
+				    ktime_t ts);
+void kcd_smi_event_page_fault_end(struct kcd_node *node, pid_t pid,
+				  unsigned long address, bool migration);
+void kcd_smi_event_migration_start(struct kcd_node *node, pid_t pid,
+			     unsigned long start, unsigned long end,
+			     uint32_t from, uint32_t to,
+			     uint32_t prefetch_loc, uint32_t preferred_loc,
+			     uint32_t trigger);
+void kcd_smi_event_migration_end(struct kcd_node *node, pid_t pid,
+			     unsigned long start, unsigned long end,
+			     uint32_t from, uint32_t to, uint32_t trigger);
+void kcd_smi_event_queue_eviction(struct kcd_node *node, pid_t pid,
+				  uint32_t trigger);
+void kcd_smi_event_queue_restore(struct kcd_node *node, pid_t pid);
+void kcd_smi_event_queue_restore_rescheduled(struct mm_struct *mm);
+void kcd_smi_event_unmap_from_gpu(struct kcd_node *node, pid_t pid,
+				  unsigned long address, unsigned long last,
+				  uint32_t trigger);
+#endif

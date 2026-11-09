@@ -2616,6 +2616,7 @@ void pwm_add_table(struct pwm_lookup *table, size_t num)
 		table++;
 	}
 }
+EXPORT_SYMBOL_GPL(pwm_add_table);
 
 /**
  * pwm_remove_table() - unregister PWM device consumers
@@ -2631,6 +2632,7 @@ void pwm_remove_table(struct pwm_lookup *table, size_t num)
 		table++;
 	}
 }
+EXPORT_SYMBOL_GPL(pwm_remove_table);
 
 static void pwm_dbg_show(struct pwm_chip *chip, struct seq_file *s)
 {
